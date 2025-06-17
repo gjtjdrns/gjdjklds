@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>미니 축구 게임</title>
+<style>
+  body {
+    margin: 0; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #2ecc71;
+    font-family: Arial, sans-serif;
+    user-select: none;
+  }
+  #game {
+    position: relative;
+    width: 400px;
+    height: 600px;
+    background: #27ae60;
+    border: 5px solid #145214;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  #player {
+    width: 40px;
+    height: 40px;
+    background: blue;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 20px;
+    left: 180px;
+    transition: left 0.1s, bottom 0.1s;
+  }
+  #ball {
+    width: 30px;
+    height: 30px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 70px;
+    left: 185px;
+    border: 3px solid black;
+  }
+  #goal {
+    width: 140px;
+    height: 60px;
+    background: rgba(255,255,255,0.7);
+    position: absolute;
+    top: 0;
+    left: 130px;
+    border-bottom: 5px solid black;
+    border-radius: 0 0 30px 30px;
+    box-shadow: 0 0 10px white;
+  }
+  #scoreboard {
+    margin-top: 15px;
+    font-size: 24px;
+    color: white;
+    text-align: center;
+  }
+  #message {
+    margin-top: 10px;
+    font-size: 18px;
+    color: #f1c40f;
+    height: 22px;
+  }
+</style>
+</head>
+<body>
+  <div>
+    <div id="game">
+      <div id="goal"></div>
+      <div id="player"></div>
+      <div id="ball"></div>
+    </div>
+    <div id="scoreboard">골: 0</div>
+    <div id="message"></div>
+    <p style="color: white; margin-top: 15px;">← → 이동 | 스페이스바로 공 찼기</p>
+  </div>
+
+  <script>
+    const player = document.getElementById("player");
+    const ball = document.getElementById("ball");
+    const goal = document.getElementById("goal");
+    const scoreboard = document.getElementById("scoreboard");
+    const message = document.getElementById("message");
+    const gameWidth = 400;
+    const gameHeight = 600;
+
+    let playerX = 180;
+    let ballX = 185;
+    let ballY = 70;
+    let ballMoving = false;
+    let ballSpeedY = 15;
+    let ballSpeedX = 0;
+    let score = 0;
+
+    document.addEventListener("keydown", (e) => {
+      if(e.key === "ArrowLeft" && playerX > 0 && !ballMoving) {
+        playerX -= 15;
+        if (!ballMoving) {
+          ballX -= 15;
+        }
+      } else if(e.key === "ArrowRight" && playerX < gameWidth - 40 && !ballMoving) {
+        playerX += 15;
+        if (!ballMoving) {
+          ballX += 15;
+        }
+      } else if(e.code === "Space" && !ballMoving) {
+        shootBall();
+      }
+      updatePositions();
+    });
+
+    function updatePositions() {
+      player.style.left = playerX + "px";
+      ball.style.left = ballX + "px";
+      ball.style.bottom = ballY + "px";
+    }
+
+    function shootBall() {
+      ballMoving = true;
+      ballSpeedX = (ballX + 15) < (gameWidth/2) ? 2 : -2; // 왼쪽/오른쪽 골대 방향에 맞춰 살짝 움직임
+
+      let shootInterval = setInterval(() => {
+        ballY += ballSpeedY;
+        ballX += ballSpeedX;
+
+        // 골대 안에 들어갔는지 체크
+        if(ballY >= 530 && ballX > 130 && ballX < 270) {
+          score++;
+          scoreboard.textContent = "골: " + score;
+          message.textContent = "⚽ 골 넣었다! 대박!";
+          resetBall();
+          clearInterval(shootInterval);
+        }
+        // 공이 경계 벗어나면 리셋
+        else if(ballY > gameHeight || ballX < 0 || ballX > gameWidth) {
+          message.textContent = "아쉽지만 골 실패...";
+          resetBall();
+          clearInterval(shootInterval);
+        } else {
+          updatePositions();
+        }
+      }, 30);
+    }
+
+    function resetBall() {
+      ballMoving = false;
+      ballY = 70;
+      ballX = playerX + 5;
+      updatePositions();
+      setTimeout(() => { message.textContent = ""; }, 2000);
+    }
+
+    updatePositions();
+  </script>
+</body>
+</html>
